@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Convert - PhotoTools</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="../index.html">PHOTO TOOLS</a> / Format Convert</h1>
+    </header>
+    <main class="tool-page">
+      <div id="dropzoneArea"></div>
+      <div class="controls" id="controls" style="display:none">
+        <div>
+          <label>Output Format</label><br>
+          <select id="format">
+            <option value="image/png">PNG</option>
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/webp">WebP</option>
+          </select>
+        </div>
+        <div>
+          <label>Quality (JPEG/WebP)</label><br>
+          <input type="range" id="quality" min="10" max="100" value="90">
+          <span id="qualityVal">90%</span>
+        </div>
+        <button class="btn" id="convertBtn">Convert</button>
+      </div>
+      <div class="info-bar" id="infoBar" style="display:none"></div>
+      <div class="preview-area" id="previewArea"></div>
+      <div id="downloadArea" style="margin-top:16px"></div>
+    </main>
+  </div>
+  <script src="../js/app.js"></script>
+  <script>
+    let srcCanvas = null;
+    let srcSize = 0;
+
+    createDropzone(document.getElementById('dropzoneArea'), async (file) => {
+      srcCanvas = await fileToCanvas(file);
+      srcSize = file.size;
+      document.getElementById('controls').style.display = 'flex';
+      document.getElementById('infoBar').style.display = 'flex';
+      document.getElementById('infoBar').textContent = `Source: ${srcCanvas.width}x${srcCanvas.height}, ${formatBytes(srcSize)}`;
+      showPreview(document.getElementById('previewArea'), srcCanvas.toDataURL());
+      document.getElementById('downloadArea').innerHTML = '';
+    });
+
+    document.getElementById('quality').addEventListener('input', e => {
+      document.getElementById('qualityVal').textContent = e.target.value + '%';
+    });
+
+    document.getElementById('convertBtn').addEventListener('click', async () => {
+      const fmt = document.getElementById('format').value;
+      const q = parseInt(document.getElementById('quality').value) / 100;
+      const blob = await new Promise(r => srcCanvas.toBlob(r, fmt, q));
+      const url = URL.createObjectURL(blob);
+      showPreview(document.getElementById('previewArea'), url);
+      const ext = fmt.split('/')[1] === 'jpeg' ? 'jpg' : fmt.split('/')[1];
+      const f = new File([blob], `converted.${ext}`, { type: fmt });
+      document.getElementById('downloadArea').innerHTML = '';
+      addDownloadButton(document.getElementById('downloadArea'), f, `converted.${ext}`);
+      document.getElementById('infoBar').textContent += ` → ${formatBytes(blob.size)} (${ext.toUpperCase()})`;
+    });
+  </script>
+</body>
+</html>

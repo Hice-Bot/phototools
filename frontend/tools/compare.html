@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compare - PhotoTools</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .compare-wrap { position: relative; overflow: hidden; border-radius: 4px; border: 1px solid var(--border); cursor: col-resize; user-select: none; }
+    .compare-wrap img { display: block; width: 100%; }
+    .compare-wrap .overlay { position: absolute; top: 0; left: 0; height: 100%; overflow: hidden; }
+    .compare-wrap .overlay img { height: 100%; width: auto; min-width: 100%; object-fit: cover; }
+    .compare-wrap .divider { position: absolute; top: 0; width: 2px; height: 100%; background: var(--accent); cursor: col-resize; }
+    .compare-wrap .labels { position: absolute; top: 8px; width: 100%; display: flex; justify-content: space-between; pointer-events: none; }
+    .compare-wrap .labels span { background: rgba(0,0,0,0.6); padding: 4px 10px; font-size: 10px; border-radius: 3px; }
+    .dual-view { display: flex; gap: 16px; }
+    .dual-view > div { flex: 1; text-align: center; }
+    .dual-view img { max-width: 100%; max-height: 400px; border: 1px solid var(--border); border-radius: 4px; }
+    .dual-view .label { font-size: 10px; color: var(--text-dim); margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="../index.html">PHOTO TOOLS</a> / Compare</h1>
+    </header>
+    <main class="tool-page">
+      <div id="drop1"></div>
+      <div id="drop2" style="margin-top:12px"></div>
+      <div class="controls" id="controls" style="display:none">
+        <button class="btn" id="sliderMode">Slider View</button>
+        <button class="btn btn-secondary" id="dualMode">Side by Side</button>
+      </div>
+      <div class="preview-area" id="previewArea"></div>
+    </main>
+  </div>
+  <script src="../js/app.js"></script>
+  <script>
+    let img1 = null, img2 = null;
+    let mode = 'slider';
+
+    createDropzone(document.getElementById('drop1'), async (file) => {
+      img1 = await loadImage(file);
+      document.getElementById('drop1').innerHTML = `<div class="big-icon">\u2705</div>Image 1 loaded (${img1.naturalWidth}x${img1.naturalHeight})`;
+      tryRender();
+    });
+
+    createDropzone(document.getElementById('drop2'), async (file) => {
+      img2 = await loadImage(file);
+      document.getElementById('drop2').innerHTML = `<div class="big-icon">\u2705</div>Image 2 loaded (${img2.naturalWidth}x${img2.naturalHeight})`;
+      tryRender();
+    });
+
+    function tryRender() {
+      if (!img1 || !img2) return;
+      document.getElementById('controls').style.display = 'flex';
+      render();
+    }
+
+    function render() {
+      const area = document.getElementById('previewArea');
+      area.innerHTML = '';
+      if (mode === 'slider') renderSlider(area);
+      else renderDual(area);
+    }
+
+    function renderSlider(area) {
+      const w = Math.max(img1.naturalWidth, img2.naturalWidth);
+      const h = Math.max(img1.naturalHeight, img2.naturalHeight);
+      const wrap = document.createElement('div');
+      wrap.className = 'compare-wrap';
+      wrap.style.height = Math.min(500, h * (800 / w)) + 'px';
+
+      const bg = document.createElement('img');
+      bg.src = img2.src;
+      bg.style.height = '100%';
+      bg.style.width = '100%';
+      bg.style.objectFit = 'contain';
+      wrap.appendChild(bg);
+
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay';
+      overlay.style.width = '50%';
+      const ovImg = document.createElement('img');
+      ovImg.src = img1.src;
+      ovImg.style.height = '100%';
+      ovImg.style.width = '100%';
+      ovImg.style.objectFit = 'contain';
+      overlay.appendChild(ovImg);
+      wrap.appendChild(overlay);
+
+      const divider = document.createElement('div');
+      divider.className = 'divider';
+      divider.style.left = '50%';
+      wrap.appendChild(divider);
+
+      const labels = document.createElement('div');
+      labels.className = 'labels';
+      labels.innerHTML = '<span>Before</span><span>After</span>';
+      wrap.appendChild(labels);
+
+      let dragging = false;
+      function move(e) {
+        const rect = wrap.getBoundingClientRect();
+        const x = Math.max(0, Math.min(rect.width, (e.clientX || e.touches[0].clientX) - rect.left));
+        const pct = (x / rect.width) * 100;
+        overlay.style.width = pct + '%';
+        divider.style.left = pct + '%';
+      }
+      wrap.addEventListener('mousedown', () => dragging = true);
+      wrap.addEventListener('touchstart', () => dragging = true);
+      window.addEventListener('mouseup', () => dragging = false);
+      window.addEventListener('touchend', () => dragging = false);
+      wrap.addEventListener('mousemove', e => { if (dragging) move(e); });
+      wrap.addEventListener('touchmove', e => { if (dragging) move(e); });
+      wrap.addEventListener('click', move);
+
+      area.appendChild(wrap);
+    }
+
+    function renderDual(area) {
+      const div = document.createElement('div');
+      div.className = 'dual-view';
+      div.innerHTML = `<div><img src="${img1.src}"><div class="label">Image 1</div></div><div><img src="${img2.src}"><div class="label">Image 2</div></div>`;
+      area.appendChild(div);
+    }
+
+    document.getElementById('sliderMode').addEventListener('click', () => { mode = 'slider'; render(); });
+    document.getElementById('dualMode').addEventListener('click', () => { mode = 'dual'; render(); });
+  </script>
+</body>
+</html>

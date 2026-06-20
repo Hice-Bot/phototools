@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restore Old Photo - PhotoTools</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="../index.html">PHOTO TOOLS</a> / Restore Old Photo</h1>
+    </header>
+    <main class="tool-page">
+      <div id="dropzoneArea"></div>
+      <div class="controls" id="controls" style="display:none">
+        <button class="btn" id="processBtn">Restore Photo</button>
+      </div>
+      <div class="progress-bar" id="progress" style="display:none"><div class="fill" id="progressFill"></div></div>
+      <div class="info-bar" id="infoBar" style="display:none"></div>
+      <div class="preview-area" id="previewArea"></div>
+      <div id="downloadArea" style="margin-top:16px"></div>
+    </main>
+  </div>
+  <script src="../js/app.js"></script>
+  <script>
+    let srcFile = null;
+    createDropzone(document.getElementById('dropzoneArea'), async (file) => {
+      srcFile = file;
+      const img = await loadImage(file);
+      document.getElementById('controls').style.display = 'flex';
+      document.getElementById('infoBar').style.display = 'flex';
+      document.getElementById('infoBar').textContent = `${img.naturalWidth} x ${img.naturalHeight}`;
+      showPreview(document.getElementById('previewArea'), img.src);
+      document.getElementById('downloadArea').innerHTML = '';
+    });
+    document.getElementById('processBtn').addEventListener('click', async () => {
+      if (!srcFile) return;
+      const btn = document.getElementById('processBtn');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      document.getElementById('progress').style.display = 'block';
+      document.getElementById('progressFill').style.width = '30%';
+      try {
+        document.getElementById('progressFill').style.width = '60%';
+        const blob = await apiPost('/api/restore', srcFile);
+        document.getElementById('progressFill').style.width = '100%';
+        showPreview(document.getElementById('previewArea'), URL.createObjectURL(blob));
+        const f = new File([blob], 'restored.png', { type: 'image/png' });
+        document.getElementById('downloadArea').innerHTML = '';
+        addDownloadButton(document.getElementById('downloadArea'), f, 'restored.png');
+        document.getElementById('infoBar').textContent = `Done — ${formatBytes(blob.size)}`;
+      } catch (e) { document.getElementById('infoBar').textContent = 'Error: ' + e.message; }
+      btn.disabled = false; btn.textContent = 'Restore Photo';
+      setTimeout(() => { document.getElementById('progress').style.display = 'none'; }, 1000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Picture - PhotoTools</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .shape-options { display: flex; gap: 12px; margin: 12px 0; }
+    .shape-btn { width: 60px; height: 60px; border: 2px solid #333; background: #1a1a1a; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 24px; }
+    .shape-btn.active { border-color: #4a9eff; background: #1a2a3a; }
+    .shape-btn:hover { border-color: #4a9eff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="../index.html">PHOTO TOOLS</a> / Profile Picture</h1>
+    </header>
+    <main class="tool-page">
+      <div id="dropzoneArea"></div>
+      <div class="controls" id="controls" style="display:none">
+        <div>
+          <label>Shape</label>
+          <div class="shape-options">
+            <button class="shape-btn active" data-shape="circle" title="Circle">⬤</button>
+            <button class="shape-btn" data-shape="square" title="Square">■</button>
+            <button class="shape-btn" data-shape="rounded" title="Rounded Square">▢</button>
+          </div>
+        </div>
+        <div>
+          <label>Output Size</label><br>
+          <select id="outputSize">
+            <option value="400">400x400</option>
+            <option value="800">800x800</option>
+            <option value="200">200x200</option>
+          </select>
+        </div>
+        <button class="btn" id="applyBtn">Apply</button>
+      </div>
+      <div class="info-bar" id="infoBar" style="display:none"></div>
+      <div class="preview-area" id="previewArea"></div>
+      <div id="downloadArea" style="margin-top:16px"></div>
+    </main>
+  </div>
+  <script src="../js/app.js"></script>
+  <script>
+    let srcCanvas = null;
+    let selectedShape = 'circle';
+
+    document.querySelectorAll('.shape-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedShape = btn.dataset.shape;
+      });
+    });
+
+    createDropzone(document.getElementById('dropzoneArea'), async (file) => {
+      srcCanvas = await fileToCanvas(file);
+      document.getElementById('controls').style.display = 'flex';
+      document.getElementById('infoBar').style.display = 'flex';
+      document.getElementById('infoBar').textContent = `Source: ${srcCanvas.width} x ${srcCanvas.height}`;
+      showPreview(document.getElementById('previewArea'), srcCanvas.toDataURL());
+      document.getElementById('downloadArea').innerHTML = '';
+    });
+
+    document.getElementById('applyBtn').addEventListener('click', async () => {
+      const size = parseInt(document.getElementById('outputSize').value);
+      const out = document.createElement('canvas');
+      out.width = size; out.height = size;
+      const ctx = out.getContext('2d');
+
+      const srcRatio = srcCanvas.width / srcCanvas.height;
+      let sx, sy, sw, sh;
+      if (srcRatio > 1) {
+        sh = srcCanvas.height;
+        sw = sh;
+        sx = (srcCanvas.width - sw) / 2;
+        sy = 0;
+      } else {
+        sw = srcCanvas.width;
+        sh = sw;
+        sx = 0;
+        sy = (srcCanvas.height - sh) / 2;
+      }
+
+      ctx.save();
+      if (selectedShape === 'circle') {
+        ctx.beginPath();
+        ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+        ctx.clip();
+      } else if (selectedShape === 'rounded') {
+        const r = size * 0.15;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, size, size, r);
+        ctx.clip();
+      }
+      ctx.drawImage(srcCanvas, sx, sy, sw, sh, 0, 0, size, size);
+      ctx.restore();
+
+      showPreview(document.getElementById('previewArea'), out.toDataURL());
+      const blob = await new Promise(r => out.toBlob(r, 'image/png'));
+      const f = new File([blob], 'profile.png', { type: 'image/png' });
+      document.getElementById('downloadArea').innerHTML = '';
+      addDownloadButton(document.getElementById('downloadArea'), f, 'profile.png');
+    });
+  </script>
+</body>
+</html>

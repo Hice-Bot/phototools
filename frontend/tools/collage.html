@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collage Maker - PhotoTools</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .collage-grid { display: grid; gap: 4px; background: #0a0a0a; padding: 8px; border-radius: 8px; }
+    .collage-slot { background: #1a1a1a; border: 2px dashed #333; display: flex; align-items: center; justify-content: center; min-height: 120px; cursor: pointer; position: relative; overflow: hidden; }
+    .collage-slot img { width: 100%; height: 100%; object-fit: cover; }
+    .collage-slot .remove-btn { position: absolute; top: 4px; right: 4px; background: #ff4444; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; }
+    .layout-options { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+    .layout-btn { padding: 8px 12px; border: 2px solid #333; background: #1a1a1a; color: #fff; cursor: pointer; border-radius: 4px; }
+    .layout-btn.active { border-color: #4a9eff; background: #1a2a3a; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="../index.html">PHOTO TOOLS</a> / Collage Maker</h1>
+    </header>
+    <main class="tool-page">
+      <div class="controls">
+        <div>
+          <label>Layout</label>
+          <div class="layout-options">
+            <button class="layout-btn active" data-layout="2x2">2x2</button>
+            <button class="layout-btn" data-layout="1x2">1x2</button>
+            <button class="layout-btn" data-layout="2x1">2x1</button>
+            <button class="layout-btn" data-layout="3x1">3x1</button>
+            <button class="layout-btn" data-layout="1x3">1x3</button>
+          </div>
+        </div>
+        <button class="btn" id="applyBtn">Generate Collage</button>
+      </div>
+      <div id="collageGrid" class="collage-grid"></div>
+      <div class="preview-area" id="previewArea"></div>
+      <div id="downloadArea" style="margin-top:16px"></div>
+    </main>
+  </div>
+  <script src="../js/app.js"></script>
+  <script>
+    let layouts = {
+      '2x2': { cols: 2, rows: 2, slots: 4 },
+      '1x2': { cols: 2, rows: 1, slots: 2 },
+      '2x1': { cols: 1, rows: 2, slots: 2 },
+      '3x1': { cols: 3, rows: 1, slots: 3 },
+      '1x3': { cols: 1, rows: 3, slots: 3 }
+    };
+    let currentLayout = '2x2';
+    let slotCanvases = {};
+
+    function renderGrid() {
+      const grid = document.getElementById('collageGrid');
+      const layout = layouts[currentLayout];
+      grid.style.gridTemplateColumns = `repeat(${layout.cols}, 1fr)`;
+      grid.style.gridTemplateRows = `repeat(${layout.rows}, 1fr)`;
+      grid.innerHTML = '';
+      slotCanvases = {};
+
+      for (let i = 0; i < layout.slots; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'collage-slot';
+        slot.innerHTML = '<span style="color:#555">+</span>';
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.style.display = 'none';
+
+        slot.addEventListener('click', () => input.click());
+        input.addEventListener('change', async () => {
+          if (input.files[0]) {
+            const canvas = await fileToCanvas(input.files[0]);
+            slotCanvases[i] = canvas;
+            slot.innerHTML = `<img src="${canvas.toDataURL()}"><button class="remove-btn" onclick="event.stopPropagation(); removeSlot(${i})">x</button>`;
+          }
+        });
+        grid.appendChild(slot);
+        grid.appendChild(input);
+      }
+    }
+
+    window.removeSlot = (i) => {
+      delete slotCanvases[i];
+      renderGrid();
+    };
+
+    document.querySelectorAll('.layout-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLayout = btn.dataset.layout;
+        renderGrid();
+      });
+    });
+
+    renderGrid();
+
+    document.getElementById('applyBtn').addEventListener('click', async () => {
+      const layout = layouts[currentLayout];
+      const cellW = 500;
+      const cellH = 500;
+      const out = document.createElement('canvas');
+      out.width = cellW * layout.cols;
+      out.height = cellH * layout.rows;
+      const ctx = out.getContext('2d');
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, out.width, out.height);
+
+      for (let i = 0; i < layout.slots; i++) {
+        const col = i % layout.cols;
+        const row = Math.floor(i / layout.cols);
+        const x = col * cellW;
+        const y = row * cellH;
+
+        if (slotCanvases[i]) {
+          const src = slotCanvases[i];
+          const srcRatio = src.width / src.height;
+          const dstRatio = cellW / cellH;
+          let sx, sy, sw, sh;
+          if (srcRatio > dstRatio) { sh = src.height; sw = sh * dstRatio; sx = (src.width - sw) / 2; sy = 0; }
+          else { sw = src.width; sh = sw / dstRatio; sx = 0; sy = (src.height - sh) / 2; }
+          ctx.drawImage(src, sx, sy, sw, sh, x, y, cellW, cellH);
+        } else {
+          ctx.fillStyle = '#222';
+          ctx.fillRect(x, y, cellW, cellH);
+        }
+      }
+
+      showPreview(document.getElementById('previewArea'), out.toDataURL());
+      const blob = await new Promise(r => out.toBlob(r, 'image/png'));
+      const f = new File([blob], 'collage.png', { type: 'image/png' });
+      document.getElementById('downloadArea').innerHTML = '';
+      addDownloadButton(document.getElementById('downloadArea'), f, 'collage.png');
+    });
+  </script>
+</body>
+</html>

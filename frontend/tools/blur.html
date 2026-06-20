@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blur Tool - PhotoTools</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="../index.html">PHOTO TOOLS</a> / Blur Tool</h1>
+    </header>
+    <main class="tool-page">
+      <div id="dropzoneArea"></div>
+      <div class="controls" id="controls" style="display:none">
+        <div>
+          <label>Blur Amount</label><br>
+          <input type="range" id="blurAmount" min="0" max="20" value="5" step="0.5">
+          <span id="blurVal">5</span>px
+        </div>
+        <button class="btn" id="applyBtn">Apply</button>
+      </div>
+      <div class="info-bar" id="infoBar" style="display:none"></div>
+      <div class="preview-area" id="previewArea"></div>
+      <div id="downloadArea" style="margin-top:16px"></div>
+    </main>
+  </div>
+  <script src="../js/app.js"></script>
+  <script>
+    let srcCanvas = null;
+
+    document.getElementById('blurAmount').addEventListener('input', e => {
+      document.getElementById('blurVal').textContent = e.target.value;
+    });
+
+    createDropzone(document.getElementById('dropzoneArea'), async (file) => {
+      srcCanvas = await fileToCanvas(file);
+      document.getElementById('controls').style.display = 'flex';
+      document.getElementById('infoBar').style.display = 'flex';
+      document.getElementById('infoBar').textContent = `Source: ${srcCanvas.width} x ${srcCanvas.height}`;
+      showPreview(document.getElementById('previewArea'), srcCanvas.toDataURL());
+      document.getElementById('downloadArea').innerHTML = '';
+    });
+
+    document.getElementById('applyBtn').addEventListener('click', async () => {
+      const blur = parseFloat(document.getElementById('blurAmount').value);
+      const out = document.createElement('canvas');
+      out.width = srcCanvas.width;
+      out.height = srcCanvas.height;
+      const ctx = out.getContext('2d');
+      ctx.filter = `blur(${blur}px)`;
+      ctx.drawImage(srcCanvas, 0, 0);
+      showPreview(document.getElementById('previewArea'), out.toDataURL());
+      const blob = await new Promise(r => out.toBlob(r, 'image/png'));
+      const f = new File([blob], 'blurred.png', { type: 'image/png' });
+      document.getElementById('downloadArea').innerHTML = '';
+      addDownloadButton(document.getElementById('downloadArea'), f, 'blurred.png');
+    });
+  </script>
+</body>
+</html>

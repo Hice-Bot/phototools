@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhotoTools</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>PHOTO TOOLS</h1>
+      <div class="tagline">client-side &bull; fast &bull; no signup</div>
+    </header>
+    <main class="tool-grid" id="toolGrid"></main>
+  </div>
+  <script>
+    const TOOLS = [
+      { id: 'upscale',     icon: '\u2B06', name: 'Upscale',       desc: '2x/4x AI upscaling', page: 'tools/upscale.html', server: true },
+      { id: 'removebg',    icon: '\u2744', name: 'Remove BG',     desc: 'Remove background', page: 'tools/removebg.html', server: true },
+      { id: 'resize',      icon: '\u29C9', name: 'Resize / Crop', desc: 'Resize or crop to exact dimensions', page: 'tools/resize.html' },
+      { id: 'convert',     icon: '\u21C4', name: 'Convert',       desc: 'PNG, JPEG, WebP, AVIF conversion', page: 'tools/convert.html' },
+      { id: 'watermark',   icon: '\u2602', name: 'Watermark',     desc: 'Add text or logo watermark', page: 'tools/watermark.html' },
+      { id: 'compress',    icon: '\u2B07', name: 'Compress',      desc: 'Reduce file size with quality control', page: 'tools/compress.html' },
+      { id: 'coloradjust', icon: '\u2600', name: 'Color Adjust',  desc: 'Brightness, contrast, saturation, hue', page: 'tools/coloradjust.html' },
+      { id: 'compare',     icon: '\u2194', name: 'Compare',       desc: 'Side-by-side or slider comparison', page: 'tools/compare.html' },
+      { id: 'transparent', icon: '\u25CB', name: 'Transparent',   desc: 'Convert to transparent PNG', page: 'tools/transparent.html', server: true },
+      { id: 'socialmedia', icon: '\uD83D\uDCF1', name: 'Social Media',   desc: 'Resize for Instagram, TikTok, YouTube, etc.', page: 'tools/socialmedia.html' },
+      { id: 'marketplace', icon: '\uD83D\uDED2', name: 'Marketplace',    desc: 'Amazon, Etsy, eBay, Shopify presets', page: 'tools/marketplace.html' },
+      { id: 'thumbnail',   icon: '\uD83D\uDDBC', name: 'Thumbnail Maker', desc: 'YouTube/TikTok thumbnail with text overlay', page: 'tools/thumbnail.html' },
+      { id: 'addtext',     icon: '\u270D', name: 'Add Text',       desc: 'Text overlay with stroke, shadow, fonts', page: 'tools/addtext.html' },
+      { id: 'profilepic',  icon: '\uD83D\uDC64', name: 'Profile Pic',    desc: 'Circle crop with border and background', page: 'tools/profilepic.html' },
+      { id: 'collage',     icon: '\uD83E\uDDF1', name: 'Collage',        desc: 'Multi-image collage layouts', page: 'tools/collage.html' },
+      { id: 'border',      icon: '\uD83E\uDDF1', name: 'Border',         desc: 'Add padding, borders, rounded corners', page: 'tools/border.html' },
+      { id: 'blur',        icon: '\uD83D\uDD0D', name: 'Blur',           desc: 'Blur faces, plates, backgrounds', page: 'tools/blur.html' },
+      { id: 'metadata',    icon: '\uD83D\uDCCB', name: 'Remove Metadata', desc: 'Strip EXIF/location data from images', page: 'tools/metadata.html' },
+      { id: 'watermarkremove', icon: '🧹', name: 'Watermark Remover', desc: 'Remove watermarks with AI', page: 'tools/watermarkremove.html', server: true },
+      { id: 'productphoto', icon: '📦', name: 'Product Photo', desc: 'White-bg marketplace product images', page: 'tools/productphoto.html', server: true },
+      { id: 'replacebg', icon: '🌈', name: 'Replace BG', desc: 'AI background replacement', page: 'tools/replacebg.html', server: true },
+      { id: 'restore', icon: '🗑', name: 'Restore Photo', desc: 'Enhance and restore old photos', page: 'tools/restore.html', server: true },
+      { id: 'passport', icon: '🪪', name: 'Passport / ID', desc: 'Passport & ID photo maker', page: 'tools/passport.html' },
+      { id: 'cleanup', icon: '🧹', name: 'Clean Up / Erase', desc: 'Remove objects, blemishes, text', page: 'tools/cleanup.html' },
+      { id: 'aistyle', icon: '🎨', name: 'AI Style', desc: 'Oil painting, sketch, cartoon, pixel art', page: 'tools/aistyle.html' },
+    ];
+    const grid = document.getElementById('toolGrid');
+    TOOLS.forEach(t => {
+      const card = document.createElement('a');
+      card.href = t.page;
+      card.className = 'tool-card';
+      card.innerHTML = `<div class="icon">${t.icon}</div><div class="name">${t.name}</div><div class="desc">${t.desc}</div>`;
+      grid.appendChild(card);
+    });
+  </script>
+</body>
+</html>

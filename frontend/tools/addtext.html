@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Text - PhotoTools</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .text-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+    .text-controls label { font-size: 12px; color: #888; }
+    .text-controls input, .text-controls select { padding: 6px 10px; border: 1px solid #333; background: #1a1a1a; color: #fff; border-radius: 4px; }
+    .text-controls input[type="color"] { width: 36px; height: 30px; padding: 2px; cursor: pointer; }
+    .text-controls input[type="range"] { width: 100px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="../index.html">PHOTO TOOLS</a> / Add Text</h1>
+    </header>
+    <main class="tool-page">
+      <div id="dropzoneArea"></div>
+      <div class="controls" id="controls" style="display:none">
+        <div class="text-controls">
+          <div><label>Text</label><br><input type="text" id="textInput" value="Hello World" style="width:200px"></div>
+          <div><label>Font Size</label><br><input type="range" id="fontSize" min="12" max="200" value="48"><span id="fontSizeVal">48</span></div>
+          <div><label>Color</label><br><input type="color" id="textColor" value="#ffffff"></div>
+          <div><label>Font</label><br>
+            <select id="fontFamily">
+              <option value="Arial">Arial</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Verdana">Verdana</option>
+            </select>
+          </div>
+          <div><label>Position</label><br>
+            <select id="position">
+              <option value="center">Center</option>
+              <option value="top">Top</option>
+              <option value="bottom">Bottom</option>
+            </select>
+          </div>
+          <button class="btn" id="applyBtn">Apply</button>
+        </div>
+      </div>
+      <div class="info-bar" id="infoBar" style="display:none"></div>
+      <div class="preview-area" id="previewArea"></div>
+      <div id="downloadArea" style="margin-top:16px"></div>
+    </main>
+  </div>
+  <script src="../js/app.js"></script>
+  <script>
+    let srcCanvas = null;
+
+    document.getElementById('fontSize').addEventListener('input', e => {
+      document.getElementById('fontSizeVal').textContent = e.target.value;
+    });
+
+    createDropzone(document.getElementById('dropzoneArea'), async (file) => {
+      srcCanvas = await fileToCanvas(file);
+      document.getElementById('controls').style.display = 'flex';
+      document.getElementById('infoBar').style.display = 'flex';
+      document.getElementById('infoBar').textContent = `Source: ${srcCanvas.width} x ${srcCanvas.height}`;
+      showPreview(document.getElementById('previewArea'), srcCanvas.toDataURL());
+      document.getElementById('downloadArea').innerHTML = '';
+    });
+
+    document.getElementById('applyBtn').addEventListener('click', async () => {
+      const out = document.createElement('canvas');
+      out.width = srcCanvas.width; out.height = srcCanvas.height;
+      const ctx = out.getContext('2d');
+      ctx.drawImage(srcCanvas, 0, 0);
+
+      const text = document.getElementById('textInput').value;
+      const size = parseInt(document.getElementById('fontSize').value);
+      const color = document.getElementById('textColor').value;
+      const font = document.getElementById('fontFamily').value;
+      const pos = document.getElementById('position').value;
+
+      ctx.font = `bold ${size}px "${font}"`;
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+
+      let y = out.height / 2;
+      if (pos === 'top') y = size + 20;
+      if (pos === 'bottom') y = out.height - size - 20;
+
+      ctx.fillText(text, out.width / 2, y);
+      showPreview(document.getElementById('previewArea'), out.toDataURL());
+      const blob = await new Promise(r => out.toBlob(r, 'image/png'));
+      const f = new File([blob], 'text-added.png', { type: 'image/png' });
+      document.getElementById('downloadArea').innerHTML = '';
+      addDownloadButton(document.getElementById('downloadArea'), f, 'text-added.png');
+    });
+  </script>
+</body>
+</html>

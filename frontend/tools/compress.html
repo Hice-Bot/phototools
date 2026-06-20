@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compress - PhotoTools</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="../index.html">PHOTO TOOLS</a> / Compress</h1>
+    </header>
+    <main class="tool-page">
+      <div id="dropzoneArea"></div>
+      <div class="controls" id="controls" style="display:none">
+        <div>
+          <label>Format</label><br>
+          <select id="format">
+            <option value="image/webp">WebP (best)</option>
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/png">PNG</option>
+          </select>
+        </div>
+        <div>
+          <label>Quality</label><br>
+          <input type="range" id="quality" min="5" max="100" value="80">
+          <span id="qualityVal">80%</span>
+        </div>
+        <button class="btn" id="compressBtn">Compress</button>
+      </div>
+      <div class="info-bar" id="infoBar" style="display:none"></div>
+      <div class="preview-area" id="previewArea"></div>
+      <div id="downloadArea" style="margin-top:16px"></div>
+    </main>
+  </div>
+  <script src="../js/app.js"></script>
+  <script>
+    let srcCanvas = null, srcSize = 0;
+
+    createDropzone(document.getElementById('dropzoneArea'), async (file) => {
+      srcCanvas = await fileToCanvas(file);
+      srcSize = file.size;
+      document.getElementById('controls').style.display = 'flex';
+      document.getElementById('infoBar').style.display = 'flex';
+      document.getElementById('infoBar').textContent = `Original: ${formatBytes(srcSize)}`;
+      showPreview(document.getElementById('previewArea'), srcCanvas.toDataURL());
+      document.getElementById('downloadArea').innerHTML = '';
+    });
+
+    document.getElementById('quality').addEventListener('input', e => {
+      document.getElementById('qualityVal').textContent = e.target.value + '%';
+    });
+
+    document.getElementById('compressBtn').addEventListener('click', async () => {
+      const fmt = document.getElementById('format').value;
+      const q = parseInt(document.getElementById('quality').value) / 100;
+      const blob = await new Promise(r => srcCanvas.toBlob(r, fmt, q));
+      const savings = ((1 - blob.size / srcSize) * 100).toFixed(1);
+      const ext = fmt.split('/')[1] === 'jpeg' ? 'jpg' : fmt.split('/')[1];
+      document.getElementById('infoBar').textContent = `Original: ${formatBytes(srcSize)} → Compressed: ${formatBytes(blob.size)} (${savings > 0 ? '-' : '+'}${Math.abs(savings)}%)`;
+      const f = new File([blob], `compressed.${ext}`, { type: fmt });
+      document.getElementById('downloadArea').innerHTML = '';
+      addDownloadButton(document.getElementById('downloadArea'), f, `compressed.${ext}`);
+      showPreview(document.getElementById('previewArea'), URL.createObjectURL(blob));
+    });
+  </script>
+</body>
+</html>

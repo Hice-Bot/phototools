@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Metadata - PhotoTools</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .meta-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .meta-table th, .meta-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #222; }
+    .meta-table th { color: #888; font-weight: normal; width: 160px; }
+    .meta-table td { color: #fff; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="../index.html">PHOTO TOOLS</a> / Image Metadata</h1>
+    </header>
+    <main class="tool-page">
+      <div id="dropzoneArea"></div>
+      <div class="preview-area" id="previewArea"></div>
+      <div id="metaInfo" style="margin-top:16px"></div>
+    </main>
+  </div>
+  <script src="../js/app.js"></script>
+  <script>
+    createDropzone(document.getElementById('dropzoneArea'), async (file) => {
+      showPreview(document.getElementById('previewArea'), URL.createObjectURL(file));
+
+      const canvas = await fileToCanvas(file);
+      const meta = document.getElementById('metaInfo');
+      meta.innerHTML = `
+        <table class="meta-table">
+          <tr><th>File Name</th><td>${file.name}</td></tr>
+          <tr><th>File Size</th><td>${formatBytes(file.size)}</td></tr>
+          <tr><th>Type</th><td>${file.type}</td></tr>
+          <tr><th>Width</th><td>${canvas.width} px</td></tr>
+          <tr><th>Height</th><td>${canvas.height} px</td></tr>
+          <tr><th>Aspect Ratio</th><td>${(canvas.width / canvas.height).toFixed(3)}</td></tr>
+          <tr><th>Megapixels</th><td>${((canvas.width * canvas.height) / 1000000).toFixed(2)} MP</td></tr>
+        </table>
+      `;
+    });
+  </script>
+</body>
+</html>

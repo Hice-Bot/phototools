@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clean Up / Erase - PhotoTools</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .canvas-wrap { position: relative; display: inline-block; cursor: crosshair; }
+    .canvas-wrap canvas { display: block; max-width: 100%; border: 1px solid var(--border); border-radius: 4px; }
+    .brush-cursor { position: fixed; pointer-events: none; border: 2px solid var(--accent); border-radius: 50%; z-index: 999; transform: translate(-50%, -50%); }
+    .toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+    .toolbar label { font-size: 11px; color: var(--text-dim); }
+    .mask-overlay { position: absolute; top: 0; left: 0; pointer-events: none; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="../index.html">PHOTO TOOLS</a> / Clean Up / Erase</h1>
+    </header>
+    <main class="tool-page">
+      <div id="dropzoneArea"></div>
+      <div class="toolbar" id="toolbar" style="display:none">
+        <div><label>Brush Size</label><br><input type="range" id="brushSize" min="5" max="80" value="25"></div>
+        <div><label><input type="checkbox" id="showMask" checked> Show mask</label></div>
+        <button class="btn btn-secondary" id="clearBtn">Clear Mask</button>
+        <button class="btn" id="eraseBtn">Erase Marked Area</button>
+        <button class="btn btn-secondary" id="undoBtn">Undo</button>
+      </div>
+      <div class="info-bar" id="infoBar" style="display:none"></div>
+      <div class="preview-area" id="previewArea"></div>
+      <div id="downloadArea" style="margin-top:16px"></div>
+    </main>
+  </div>
+  <div class="brush-cursor" id="brushCursor" style="display:none"></div>
+  <script src="../js/app.js"></script>
+  <script>
+    let srcCanvas = null, displayCanvas = null, maskCanvas = null;
+    let ctx, mctx;
+    let drawing = false;
+    let history = [];
+    const cursor = document.getElementById('brushCursor');
+
+    createDropzone(document.getElementById('dropzoneArea'), async (file) => {
+      srcCanvas = await fileToCanvas(file);
+      history = [srcCanvas.toDataURL()];
+      setupCanvas();
+      document.getElementById('toolbar').style.display = 'flex';
+      document.getElementById('infoBar').style.display = 'flex';
+      document.getElementById('infoBar').textContent = `Paint over areas you want to remove, then click Erase`;
+      document.getElementById('downloadArea').innerHTML = '';
+    });
+
+    function setupCanvas() {
+      const area = document.getElementById('previewArea');
+      area.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.className = 'canvas-wrap';
+
+      displayCanvas = document.createElement('canvas');
+      displayCanvas.width = srcCanvas.width;
+      displayCanvas.height = srcCanvas.height;
+      ctx = displayCanvas.getContext('2d');
+      ctx.drawImage(srcCanvas, 0, 0);
+
+      maskCanvas = document.createElement('canvas');
+      maskCanvas.width = srcCanvas.width;
+      maskCanvas.height = srcCanvas.height;
+      mctx = maskCanvas.getContext('2d');
+      mctx.fillStyle = 'rgba(255, 80, 80, 0.45)';
+
+      wrap.appendChild(displayCanvas);
+      maskCanvas.className = 'mask-overlay';
+      wrap.appendChild(maskCanvas);
+      area.appendChild(wrap);
+
+      displayCanvas.addEventListener('mousedown', startDraw);
+      displayCanvas.addEventListener('mousemove', draw);
+      displayCanvas.addEventListener('mouseup', stopDraw);
+      displayCanvas.addEventListener('mouseleave', stopDraw);
+      displayCanvas.addEventListener('mousemove', moveCursor);
+      displayCanvas.addEventListener('mouseenter', () => cursor.style.display = 'block');
+      displayCanvas.addEventListener('mouseleave', () => cursor.style.display = 'none');
+    }
+
+    function getPos(e) {
+      const rect = displayCanvas.getBoundingClientRect();
+      const scaleX = displayCanvas.width / rect.width;
+      const scaleY = displayCanvas.height / rect.height;
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
+    }
+
+    function startDraw(e) { drawing = true; draw(e); }
+    function stopDraw() { drawing = false; }
+    function draw(e) {
+      if (!drawing) return;
+      const pos = getPos(e);
+      const size = parseInt(document.getElementById('brushSize').value) * (displayCanvas.width / displayCanvas.getBoundingClientRect().width);
+      mctx.beginPath();
+      mctx.arc(pos.x, pos.y, size / 2, 0, Math.PI * 2);
+      mctx.fill();
+    }
+
+    function moveCursor(e) {
+      const size = parseInt(document.getElementById('brushSize').value);
+      cursor.style.width = size + 'px';
+      cursor.style.height = size + 'px';
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+    }
+
+    document.getElementById('showMask').addEventListener('change', e => {
+      maskCanvas.style.opacity = e.target.checked ? '1' : '0';
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      mctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+    });
+
+    document.getElementById('undoBtn').addEventListener('click', () => {
+      if (history.length > 1) {
+        history.pop();
+        const img = new Image();
+        img.onload = () => {
+          srcCanvas.getContext('2d').clearRect(0, 0, srcCanvas.width, srcCanvas.height);
+          srcCanvas.getContext('2d').drawImage(img, 0, 0);
+          ctx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
+          ctx.drawImage(srcCanvas, 0, 0);
+          mctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+        };
+        img.src = history[history.length - 1];
+      }
+    });
+
+    document.getElementById('eraseBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('eraseBtn');
+      btn.disabled = true; btn.textContent = 'Erasing...';
+
+      const w = srcCanvas.width, h = srcCanvas.height;
+      const srcCtx = srcCanvas.getContext('2d');
+      const srcData = srcCtx.getImageData(0, 0, w, h);
+      const maskData = mctx.getImageData(0, 0, w, h);
+      const outData = ctx.getImageData(0, 0, w, h);
+
+      // Build mask of pixels to erase
+      const mask = new Uint8Array(w * h);
+      for (let i = 0; i < w * h; i++) {
+        if (maskData.data[i * 4 + 3] > 50) mask[i] = 1;
+      }
+
+      // Simple inpainting: for each masked pixel, average nearby non-masked pixels
+      const passes = 80;
+      for (let p = 0; p < passes; p++) {
+        let changed = false;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const idx = y * w + x;
+            if (!mask[idx]) continue;
+
+            let r = 0, g = 0, b = 0, count = 0;
+            const radius = Math.min(3 + p / 4, 20) | 0;
+            for (let dy = -radius; dy <= radius; dy++) {
+              for (let dx = -radius; dx <= radius; dx++) {
+                const nx = x + dx, ny = y + dy;
+                if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                const nIdx = ny * w + nx;
+                if (mask[nIdx]) continue;
+                const pi = nIdx * 4;
+                r += outData.data[pi];
+                g += outData.data[pi + 1];
+                b += outData.data[pi + 2];
+                count++;
+              }
+            }
+            if (count > 0) {
+              const pi = idx * 4;
+              outData.data[pi] = r / count;
+              outData.data[pi + 1] = g / count;
+              outData.data[pi + 2] = b / count;
+              mask[idx] = 0;
+              changed = true;
+            }
+          }
+        }
+        if (!changed) break;
+      }
+
+      ctx.putImageData(outData, 0, 0);
+
+      // Update source canvas
+      srcCtx.clearRect(0, 0, w, h);
+      srcCtx.drawImage(displayCanvas, 0, 0);
+      history.push(srcCanvas.toDataURL());
+
+      // Clear mask
+      mctx.clearRect(0, 0, w, h);
+
+      // Show download
+      const blob = await new Promise(r => displayCanvas.toBlob(r, 'image/png'));
+      const f = new File([blob], 'cleaned.png', { type: 'image/png' });
+      document.getElementById('downloadArea').innerHTML = '';
+      addDownloadButton(document.getElementById('downloadArea'), f, 'cleaned.png');
+      document.getElementById('infoBar').textContent = 'Done — area erased';
+
+      btn.disabled = false; btn.textContent = 'Erase Marked Area';
+    });
+  </script>
+</body>
+</html>
