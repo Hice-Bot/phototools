@@ -14,40 +14,72 @@
     </header>
     <main class="tool-grid" id="toolGrid"></main>
   </div>
+  <style>
+    .tool-icon { width: 36px; height: 36px; margin-bottom: 12px; }
+    .tool-icon svg { width: 100%; height: 100%; }
+  </style>
   <script>
+    const G = '#4a9a5a';
+    const ICONS = {
+      upscale: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="6" y="14" width="24" height="16" rx="2"/><path d="M12 14V8a6 6 0 0112 0v6"/><circle cx="18" cy="22" r="2" fill="${G}"/></svg>`,
+      removebg: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="4" y="6" width="28" height="24" rx="2"/><path d="M4 26l8-8 4 4 8-10 8 8" stroke-linejoin="round"/><circle cx="12" cy="13" r="2" fill="${G}"/></svg>`,
+      resize: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="8" y="8" width="20" height="20" rx="1"/><path d="M28 8v20M8 28h20" stroke-dasharray="2 2"/></svg>`,
+      convert: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="4" y="10" width="11" height="16" rx="2"/><rect x="21" y="10" width="11" height="16" rx="2"/><path d="M15 18h6M18 15l3 3-3 3"/></svg>`,
+      watermark: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="4" y="6" width="28" height="24" rx="2"/><text x="18" y="23" text-anchor="middle" font-size="10" font-weight="bold" fill="${G}" stroke="none" opacity=".5">WM</text></svg>`,
+      compress: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="8" y="4" width="20" height="28" rx="2"/><path d="M14 14l4 4 4-4M14 22l4 4 4-4"/></svg>`,
+      coloradjust: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><circle cx="14" cy="14" r="6"/><circle cx="22" cy="14" r="6"/><circle cx="18" cy="20" r="6"/><path d="M14 14a6 6 0 016 0" fill="${G}" opacity=".3"/></svg>`,
+      compare: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="4" y="6" width="28" height="24" rx="2"/><line x1="18" y1="6" x2="18" y2="30"/><path d="M15 18l-4 0M21 18l4 0"/></svg>`,
+      transparent: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="6" y="6" width="24" height="24" rx="2"/><path d="M6 6l24 24M30 6L6 30" stroke-dasharray="3 3" opacity=".4"/><circle cx="18" cy="18" r="5" fill="${G}" opacity=".3"/></svg>`,
+      socialmedia: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="10" y="4" width="16" height="28" rx="3"/><circle cx="18" cy="28" r="1.5" fill="${G}"/><circle cx="18" cy="8" r="1" fill="${G}"/></svg>`,
+      marketplace: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><path d="M6 12h24l-3 16H9z"/><path d="M12 12V8a6 6 0 0112 0v4"/><circle cx="14" cy="20" r="1" fill="${G}"/><circle cx="22" cy="20" r="1" fill="${G}"/></svg>`,
+      thumbnail: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="4" y="8" width="28" height="20" rx="2"/><polygon points="15,14 15,24 24,19" fill="${G}"/></svg>`,
+      addtext: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><path d="M8 8h20M18 8v20M14 28h8"/><path d="M26 26l4 4" stroke-width="3"/></svg>`,
+      profilepic: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><circle cx="18" cy="14" r="6"/><path d="M6 30c0-6.6 5.4-12 12-12s12 5.4 12 12"/></svg>`,
+      collage: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="4" y="4" width="13" height="13" rx="1"/><rect x="19" y="4" width="13" height="13" rx="1"/><rect x="4" y="19" width="13" height="13" rx="1"/><rect x="19" y="19" width="13" height="13" rx="1"/></svg>`,
+      border: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="2" y="2" width="32" height="32" rx="2"/><rect x="8" y="8" width="20" height="20" rx="1" stroke-dasharray="2 2"/></svg>`,
+      blur: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><circle cx="18" cy="18" r="10"/><circle cx="18" cy="18" r="6" opacity=".5"/><circle cx="18" cy="18" r="3" opacity=".3" fill="${G}"/></svg>`,
+      metadata: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="6" y="4" width="24" height="28" rx="2"/><path d="M10 12h16M10 17h12M10 22h8"/><path d="M24 24l4 4M28 24l-4 4" stroke-width="2.5"/></svg>`,
+      watermarkremove: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="4" y="6" width="28" height="24" rx="2"/><text x="18" y="23" text-anchor="middle" font-size="10" font-weight="bold" fill="${G}" stroke="none" opacity=".5">WM</text><path d="M6 6l24 24" stroke-width="2.5"/></svg>`,
+      productphoto: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="8" y="12" width="20" height="16" rx="2"/><path d="M14 12V8a4 4 0 018 0v4"/><circle cx="18" cy="20" r="3" fill="${G}" opacity=".3"/></svg>`,
+      replacebg: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="4" y="6" width="28" height="24" rx="2"/><circle cx="24" cy="12" r="4"/><path d="M4 24l8-6 4 4 6-8 10 10"/></svg>`,
+      restore: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="6" y="6" width="24" height="24" rx="2"/><path d="M6 6l24 24M30 6L6 30" stroke-dasharray="3 3" opacity=".3"/><path d="M14 18c0-2.2 1.8-4 4-4s4 1.8 4 4-4 8-4 8-4-5.8-4-8z" fill="${G}" opacity=".3"/></svg>`,
+      passport: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="6" y="4" width="24" height="28" rx="2"/><circle cx="18" cy="14" r="5"/><path d="M10 26c0-4.4 3.6-8 8-8s8 3.6 8 8"/><line x1="12" y1="30" x2="24" y2="30" stroke-dasharray="2 1"/></svg>`,
+      cleanup: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><rect x="6" y="6" width="24" height="24" rx="2"/><path d="M14 14l8 8M22 14l-8 8" stroke-width="2.5"/><circle cx="18" cy="18" r="3" fill="${G}" opacity=".2"/></svg>`,
+      aistyle: `<svg viewBox="0 0 36 36" fill="none" stroke="${G}" stroke-width="2"><path d="M18 4l2 8h8l-6.5 5 2.5 8L18 20l-6 5 2.5-8L8 12h8z" fill="${G}" opacity=".2"/><circle cx="18" cy="18" r="14" stroke-dasharray="3 3" opacity=".3"/></svg>`,
+    };
     const TOOLS = [
-      { id: 'upscale',     icon: '\u2B06', name: 'Upscale',       desc: '2x/4x AI upscaling', page: 'tools/upscale.html', server: true },
-      { id: 'removebg',    icon: '\u2744', name: 'Remove BG',     desc: 'Remove background', page: 'tools/removebg.html', server: true },
-      { id: 'resize',      icon: '\u29C9', name: 'Resize / Crop', desc: 'Resize or crop to exact dimensions', page: 'tools/resize.html' },
-      { id: 'convert',     icon: '\u21C4', name: 'Convert',       desc: 'PNG, JPEG, WebP, AVIF conversion', page: 'tools/convert.html' },
-      { id: 'watermark',   icon: '\u2602', name: 'Watermark',     desc: 'Add text or logo watermark', page: 'tools/watermark.html' },
-      { id: 'compress',    icon: '\u2B07', name: 'Compress',      desc: 'Reduce file size with quality control', page: 'tools/compress.html' },
-      { id: 'coloradjust', icon: '\u2600', name: 'Color Adjust',  desc: 'Brightness, contrast, saturation, hue', page: 'tools/coloradjust.html' },
-      { id: 'compare',     icon: '\u2194', name: 'Compare',       desc: 'Side-by-side or slider comparison', page: 'tools/compare.html' },
-      { id: 'transparent', icon: '\u25CB', name: 'Transparent',   desc: 'Convert to transparent PNG', page: 'tools/transparent.html', server: true },
-      { id: 'socialmedia', icon: '\uD83D\uDCF1', name: 'Social Media',   desc: 'Resize for Instagram, TikTok, YouTube, etc.', page: 'tools/socialmedia.html' },
-      { id: 'marketplace', icon: '\uD83D\uDED2', name: 'Marketplace',    desc: 'Amazon, Etsy, eBay, Shopify presets', page: 'tools/marketplace.html' },
-      { id: 'thumbnail',   icon: '\uD83D\uDDBC', name: 'Thumbnail Maker', desc: 'YouTube/TikTok thumbnail with text overlay', page: 'tools/thumbnail.html' },
-      { id: 'addtext',     icon: '\u270D', name: 'Add Text',       desc: 'Text overlay with stroke, shadow, fonts', page: 'tools/addtext.html' },
-      { id: 'profilepic',  icon: '\uD83D\uDC64', name: 'Profile Pic',    desc: 'Circle crop with border and background', page: 'tools/profilepic.html' },
-      { id: 'collage',     icon: '\uD83E\uDDF1', name: 'Collage',        desc: 'Multi-image collage layouts', page: 'tools/collage.html' },
-      { id: 'border',      icon: '\uD83E\uDDF1', name: 'Border',         desc: 'Add padding, borders, rounded corners', page: 'tools/border.html' },
-      { id: 'blur',        icon: '\uD83D\uDD0D', name: 'Blur',           desc: 'Blur faces, plates, backgrounds', page: 'tools/blur.html' },
-      { id: 'metadata',    icon: '\uD83D\uDCCB', name: 'Remove Metadata', desc: 'Strip EXIF/location data from images', page: 'tools/metadata.html' },
-      { id: 'watermarkremove', icon: '🧹', name: 'Watermark Remover', desc: 'Remove watermarks with AI', page: 'tools/watermarkremove.html', server: true },
-      { id: 'productphoto', icon: '📦', name: 'Product Photo', desc: 'White-bg marketplace product images', page: 'tools/productphoto.html', server: true },
-      { id: 'replacebg', icon: '🌈', name: 'Replace BG', desc: 'AI background replacement', page: 'tools/replacebg.html', server: true },
-      { id: 'restore', icon: '🗑', name: 'Restore Photo', desc: 'Enhance and restore old photos', page: 'tools/restore.html', server: true },
-      { id: 'passport', icon: '🪪', name: 'Passport / ID', desc: 'Passport & ID photo maker', page: 'tools/passport.html' },
-      { id: 'cleanup', icon: '🧹', name: 'Clean Up / Erase', desc: 'Remove objects, blemishes, text', page: 'tools/cleanup.html' },
-      { id: 'aistyle', icon: '🎨', name: 'AI Style', desc: 'Oil painting, sketch, cartoon, pixel art', page: 'tools/aistyle.html' },
+      { id: 'upscale',     name: 'Upscale',       desc: '2x/4x AI upscaling', page: 'tools/upscale.html', server: true },
+      { id: 'removebg',    name: 'Remove BG',     desc: 'Remove background', page: 'tools/removebg.html', server: true },
+      { id: 'resize',      name: 'Resize / Crop', desc: 'Resize or crop to exact dimensions', page: 'tools/resize.html' },
+      { id: 'convert',     name: 'Convert',       desc: 'PNG, JPEG, WebP, AVIF conversion', page: 'tools/convert.html' },
+      { id: 'watermark',   name: 'Watermark',     desc: 'Add text or logo watermark', page: 'tools/watermark.html' },
+      { id: 'compress',    name: 'Compress',      desc: 'Reduce file size with quality control', page: 'tools/compress.html' },
+      { id: 'coloradjust', name: 'Color Adjust',  desc: 'Brightness, contrast, saturation, hue', page: 'tools/coloradjust.html' },
+      { id: 'compare',     name: 'Compare',       desc: 'Side-by-side or slider comparison', page: 'tools/compare.html' },
+      { id: 'transparent', name: 'Transparent',   desc: 'Convert to transparent PNG', page: 'tools/transparent.html', server: true },
+      { id: 'socialmedia', name: 'Social Media',   desc: 'Resize for Instagram, TikTok, YouTube, etc.', page: 'tools/socialmedia.html' },
+      { id: 'marketplace', name: 'Marketplace',    desc: 'Amazon, Etsy, eBay, Shopify presets', page: 'tools/marketplace.html' },
+      { id: 'thumbnail',   name: 'Thumbnail Maker', desc: 'YouTube/TikTok thumbnail with text overlay', page: 'tools/thumbnail.html' },
+      { id: 'addtext',     name: 'Add Text',       desc: 'Text overlay with stroke, shadow, fonts', page: 'tools/addtext.html' },
+      { id: 'profilepic',  name: 'Profile Pic',    desc: 'Circle crop with border and background', page: 'tools/profilepic.html' },
+      { id: 'collage',     name: 'Collage',        desc: 'Multi-image collage layouts', page: 'tools/collage.html' },
+      { id: 'border',      name: 'Border',         desc: 'Add padding, borders, rounded corners', page: 'tools/border.html' },
+      { id: 'blur',        name: 'Blur',           desc: 'Blur faces, plates, backgrounds', page: 'tools/blur.html' },
+      { id: 'metadata',    name: 'Remove Metadata', desc: 'Strip EXIF/location data from images', page: 'tools/metadata.html' },
+      { id: 'watermarkremove', name: 'Watermark Remover', desc: 'Remove watermarks with AI', page: 'tools/watermarkremove.html', server: true },
+      { id: 'productphoto', name: 'Product Photo', desc: 'White-bg marketplace product images', page: 'tools/productphoto.html', server: true },
+      { id: 'replacebg', name: 'Replace BG', desc: 'AI background replacement', page: 'tools/replacebg.html', server: true },
+      { id: 'restore', name: 'Restore Photo', desc: 'Enhance and restore old photos', page: 'tools/restore.html', server: true },
+      { id: 'passport', name: 'Passport / ID', desc: 'Passport & ID photo maker', page: 'tools/passport.html' },
+      { id: 'cleanup', name: 'Clean Up / Erase', desc: 'Remove objects, blemishes, text', page: 'tools/cleanup.html' },
+      { id: 'aistyle', name: 'AI Style', desc: 'Oil painting, sketch, cartoon, pixel art', page: 'tools/aistyle.html' },
     ];
     const grid = document.getElementById('toolGrid');
     TOOLS.forEach(t => {
       const card = document.createElement('a');
       card.href = t.page;
       card.className = 'tool-card';
-      card.innerHTML = `<div class="icon">${t.icon}</div><div class="name">${t.name}</div><div class="desc">${t.desc}</div>`;
+      card.innerHTML = `<div class="tool-icon">${ICONS[t.id]}</div><div class="name">${t.name}</div><div class="desc">${t.desc}</div>`;
       grid.appendChild(card);
     });
   </script>
