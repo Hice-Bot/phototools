@@ -23,6 +23,7 @@
     </main>
   </div>
   <script src="../js/app.js"></script>
+  <script src="../js/clerk.js"></script>
   <script>
     let srcFile = null;
     createDropzone(document.getElementById('dropzoneArea'), async (file) => {
@@ -31,7 +32,6 @@
       document.getElementById('controls').style.display = 'flex';
       document.getElementById('infoBar').style.display = 'flex';
       document.getElementById('infoBar').textContent = `${img.naturalWidth} x ${img.naturalHeight}`;
-      showPreview(document.getElementById('previewArea'), img.src);
       document.getElementById('downloadArea').innerHTML = '';
     });
     document.getElementById('processBtn').addEventListener('click', async () => {

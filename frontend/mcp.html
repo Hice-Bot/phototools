@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP - PhotoTools</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>PhotoTools</h1>
+      <div class="tagline">connect agents to paid image tools through MCP</div>
+    </header>
+
+    <main class="content-page">
+      <div class="ad-banner">Ad placeholder (728x90)</div>
+
+      <section class="content-section">
+        <h2>PhotoTools MCP</h2>
+        <p>The MCP server exposes the same trusted image operations as the web/API layer: remove background, transparent cutout, upscale, product photo background, background presets, restore photo, and strip metadata.</p>
+      </section>
+
+      <section class="content-section">
+        <h2>Local Setup</h2>
+        <pre class="code-block">cd /home/mcuser/phototools/server
+python3 -m pip install -r requirements.txt
+PHOTO_TOOLS_MCP_TRANSPORT=stdio python3 mcp_server.py</pre>
+        <p>Use stdio for local agent integrations. For hosted HTTP MCP, run the same server with streamable HTTP behind an auth-aware reverse proxy.</p>
+      </section>
+
+      <section class="content-section">
+        <h2>Paid Access</h2>
+        <p>API and hosted MCP access require Clerk auth or a PhotoTools API key. This build includes dummy billing gates through `PHOTO_TOOLS_DUMMY_PAID_USERS` and `PHOTO_TOOLS_DUMMY_API_KEYS` while Clerk plans are being tested.</p>
+        <pre class="code-block">Authorization: Bearer &lt;clerk-session-token&gt;
+X-PhotoTools-API-Key: &lt;dummy-or-real-api-key&gt;</pre>
+      </section>
+
+      <section class="content-section">
+        <h2>Pricing</h2>
+        <div class="pricing-grid">
+          <article class="pricing-card">
+            <h3>Starter API/MCP</h3>
+            <div class="price">$12/mo</div>
+            <p>200 credits, 1 API key, MCP access.</p>
+          </article>
+          <article class="pricing-card">
+            <h3>Pro API/MCP</h3>
+            <div class="price">$29/mo</div>
+            <p>500 credits, 3 API keys, higher rate limits.</p>
+          </article>
+          <article class="pricing-card">
+            <h3>Studio</h3>
+            <div class="price">$79/mo</div>
+            <p>1,500 credits, team keys, priority queue.</p>
+          </article>
+          <article class="pricing-card">
+            <h3>Overage</h3>
+            <div class="price">$0.06</div>
+            <p>Per extra credit after plan credits.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-section">
+        <h2>Tools</h2>
+        <pre class="code-block">remove_background(image_base64)
+make_transparent_png(image_base64)
+upscale_image(image_base64, scale=2)
+product_photo_background(image_base64, background="white")
+replace_background_preset(image_base64, background="studio")
+restore_photo(image_base64)
+strip_metadata(image_base64)</pre>
+      </section>
+
+      <div class="ad-banner">Ad placeholder (728x90)</div>
+    </main>
+  </div>
+  <script src="js/app.js"></script>
+  <script src="js/clerk.js"></script>
+</body>
+</html>

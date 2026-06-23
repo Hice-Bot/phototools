@@ -3,38 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Image Metadata - PhotoTools</title>
+  <title>Remove Metadata - PhotoTools</title>
   <link rel="stylesheet" href="../css/style.css">
   <style>
     .meta-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    .meta-table th, .meta-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #222; }
-    .meta-table th { color: #888; font-weight: normal; width: 160px; }
-    .meta-table td { color: #fff; word-break: break-all; }
+    .meta-table th, .meta-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    .meta-table th { color: var(--text-dim); font-weight: normal; width: 160px; }
+    .meta-table td { color: var(--text); word-break: break-all; }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1><a href="../index.html">PHOTO TOOLS</a> / Image Metadata</h1>
+      <h1><a href="../index.html">PHOTO TOOLS</a> / Remove Metadata</h1>
     </header>
     <main class="tool-page">
       <div id="dropzoneArea"></div>
+      <div class="info-bar" id="infoBar" style="display:none"></div>
       <div class="preview-area" id="previewArea"></div>
       <div id="metaInfo" style="margin-top:16px"></div>
+      <div id="downloadArea" style="margin-top:16px"></div>
     </main>
   </div>
   <script src="../js/app.js"></script>
+  <script src="../js/clerk.js"></script>
   <script>
     createDropzone(document.getElementById('dropzoneArea'), async (file) => {
-      showPreview(document.getElementById('previewArea'), URL.createObjectURL(file));
-
       const canvas = await fileToCanvas(file);
+      const stripped = await canvasToFile(canvas, 'image/png');
+      showPreview(document.getElementById('previewArea'), URL.createObjectURL(stripped), 'Metadata-stripped PNG');
+      document.getElementById('downloadArea').innerHTML = '';
+      addDownloadButton(document.getElementById('downloadArea'), stripped, 'metadata-stripped.png');
+
+      document.getElementById('infoBar').style.display = 'flex';
+      document.getElementById('infoBar').textContent = `Stripped output: ${formatBytes(stripped.size)} PNG`;
+
       const meta = document.getElementById('metaInfo');
       meta.innerHTML = `
         <table class="meta-table">
           <tr><th>File Name</th><td>${file.name}</td></tr>
-          <tr><th>File Size</th><td>${formatBytes(file.size)}</td></tr>
-          <tr><th>Type</th><td>${file.type}</td></tr>
+          <tr><th>Original Size</th><td>${formatBytes(file.size)}</td></tr>
+          <tr><th>Output Size</th><td>${formatBytes(stripped.size)}</td></tr>
+          <tr><th>Type</th><td>${file.type || 'unknown'}</td></tr>
           <tr><th>Width</th><td>${canvas.width} px</td></tr>
           <tr><th>Height</th><td>${canvas.height} px</td></tr>
           <tr><th>Aspect Ratio</th><td>${(canvas.width / canvas.height).toFixed(3)}</td></tr>
