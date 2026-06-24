@@ -50,7 +50,7 @@ function createAdBanner(label = 'Ad placeholder') {
   const ad = createEl('div', 'ad-banner');
   ad.setAttribute('role', 'complementary');
   ad.setAttribute('aria-label', label);
-  ad.textContent = `${label} (728x90)`;
+  ad.textContent = `${label} (responsive)`;
   return ad;
 }
 

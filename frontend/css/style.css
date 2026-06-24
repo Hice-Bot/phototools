@@ -80,7 +80,9 @@ header .tagline {
 
 .ad-banner {
   width: 100%;
-  min-height: 90px;
+  min-height: clamp(64px, 12vw, 90px);
+  aspect-ratio: 8 / 1;
+  max-height: 120px;
   border: 1px dashed var(--border-strong);
   border-radius: 6px;
   color: var(--accent);
@@ -89,7 +91,10 @@ header .tagline {
   align-items: center;
   justify-content: center;
   font-size: 13px;
+  line-height: 1.4;
   margin: 20px 0;
+  padding: 12px;
+  text-align: center;
 }
 
 .home-intro {
@@ -423,5 +428,9 @@ header .tagline {
   .tool-column { padding: 14px; }
   .controls, #toolbar { flex-direction: column; align-items: stretch; }
   .panel-head { align-items: flex-start; flex-direction: column; }
-  .ad-banner { min-height: 72px; font-size: 11px; }
+  .ad-banner {
+    aspect-ratio: 5 / 1;
+    min-height: 64px;
+    font-size: 11px;
+  }
 }
