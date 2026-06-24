@@ -46,6 +46,42 @@ header {
   gap: 24px;
 }
 
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  display: inline-grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 5px;
+  background: rgba(57, 184, 101, 0.08);
+  box-shadow: 0 0 22px var(--accent-glow);
+  flex: 0 0 auto;
+}
+
+.brand-mark span {
+  display: block;
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+}
+
+.brand-mark span:nth-child(2) {
+  transform: translateY(4px);
+}
+
+.brand-mark span:nth-child(3) {
+  transform: translateY(-3px);
+  background: var(--accent);
+}
+
 header h1 {
   font-size: 20px;
   font-weight: 600;
@@ -80,21 +116,34 @@ header .tagline {
 
 .ad-banner {
   width: 100%;
-  min-height: clamp(64px, 12vw, 90px);
-  aspect-ratio: 8 / 1;
-  max-height: 120px;
-  border: 1px dashed var(--border-strong);
+  height: clamp(96px, 13vw, 178px);
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
   color: var(--accent);
-  background: rgba(57, 184, 101, 0.045);
+  background: #030504;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 13px;
   line-height: 1.4;
   margin: 20px 0;
-  padding: 12px;
+  padding: 0;
   text-align: center;
+  overflow: hidden;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
+}
+
+.ad-banner:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.ad-banner img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
 }
 
 .home-intro {
@@ -385,11 +434,25 @@ header .tagline {
   border-radius: 7px;
   background: var(--surface);
   padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.pricing-card h3 { font-size: 14px; margin-bottom: 10px; }
-.pricing-card .price { font-size: 22px; color: var(--accent); margin-bottom: 8px; }
-.pricing-card ul { list-style: none; display: grid; gap: 8px; margin-top: 14px; }
+.pricing-card h3 { font-size: 14px; }
+.pricing-card .price { font-size: 22px; color: var(--accent); }
+.pricing-card ul { list-style: none; display: grid; gap: 8px; margin-top: 4px; }
+.pricing-card .purchase-btn { margin-top: auto; text-align: center; width: 100%; }
+
+.billing-note {
+  border: 1px solid var(--border);
+  background: rgba(57, 184, 101, 0.05);
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.docs-link-section .btn { margin-top: 14px; display: inline-flex; }
 
 .code-block {
   background: #050705;
@@ -429,8 +492,7 @@ header .tagline {
   .controls, #toolbar { flex-direction: column; align-items: stretch; }
   .panel-head { align-items: flex-start; flex-direction: column; }
   .ad-banner {
-    aspect-ratio: 5 / 1;
-    min-height: 64px;
+    height: 78px;
     font-size: 11px;
   }
 }

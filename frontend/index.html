@@ -10,10 +10,12 @@
   <div class="container">
     <header>
       <h1>PhotoTools</h1>
-      <div class="tagline">free web tools with ads &bull; paid API and MCP access</div>
+      <div class="tagline">Free web image tools, plus MCP access for AI agents.</div>
     </header>
 
-    <div class="ad-banner">Ad placeholder (responsive)</div>
+    <a class="ad-banner" href="pricing.html" aria-label="Image Tools MCP pricing">
+      <img src="assets/ads/image-tools-mcp-try-now.png" alt="Image Tools MCP - try it now">
+    </a>
     <main class="tool-grid" id="toolGrid"></main>
   </div>
 
@@ -77,7 +79,7 @@
     ];
     const grid = document.getElementById('toolGrid');
     TOOLS.forEach((t, index) => {
-      if (index === 8) grid.appendChild(createAdBanner('Ad placeholder'));
+      if (index === 8) grid.appendChild(createAdBanner());
       const card = document.createElement('a');
       card.href = t.page;
       card.className = 'tool-card';

@@ -24,10 +24,6 @@
     const clerk = await loadClerk().catch(() => null);
     slot.innerHTML = '';
     if (!clerk) {
-      const badge = document.createElement('span');
-      badge.className = 'btn btn-secondary btn-small';
-      badge.textContent = 'Dummy auth';
-      slot.appendChild(badge);
       return;
     }
     if (clerk.user) {
@@ -59,6 +55,14 @@
         return true;
       }
       return false;
+    },
+    async startCheckout(plan, price) {
+      const clerk = await loadClerk().catch(() => null);
+      if (clerk?.openSignIn && !clerk.user) {
+        clerk.openSignIn();
+        return;
+      }
+      alert(`${plan} (${price}) checkout is wired for Clerk billing. Dummy billing is active while the site is for sale.`);
     },
   };
 

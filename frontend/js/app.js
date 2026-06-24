@@ -4,6 +4,11 @@ const API_BASE = window.PHOTOTOOLS_API_BASE
     : `${window.location.origin}`);
 
 const CLERK_PUBLISHABLE_KEY = window.CLERK_PUBLISHABLE_KEY || 'pk_test_dummy_phototools';
+const AD_IMAGES = [
+  'assets/ads/image-tools-mcp-try-now.png',
+  'assets/ads/image-tools-mcp-use-now.png',
+];
+let adIndex = 0;
 
 function createEl(tag, className, text) {
   const el = document.createElement(tag);
@@ -19,38 +24,43 @@ function enhanceHeader() {
   header.classList.add('site-header');
 
   const title = header.querySelector('h1');
+  const brand = createEl('div', 'brand-lockup');
+  const mark = createEl('span', 'brand-mark');
+  mark.setAttribute('aria-hidden', 'true');
+  mark.innerHTML = '<span></span><span></span><span></span>';
+  if (title) brand.appendChild(mark);
+  if (title) brand.appendChild(title);
   const row = createEl('div', 'header-row');
-  if (title) row.appendChild(title);
+  if (title) row.appendChild(brand);
 
   const nav = createEl('nav', 'site-nav');
   const prefix = window.location.pathname.includes('/tools/') ? '../' : '';
   [
-    ['All Tools', `${prefix}index.html`],
     ['MCP', `${prefix}mcp.html`],
-    ['Pricing', `${prefix}pricing.html`],
   ].forEach(([label, href]) => {
     const link = createEl('a', '', label);
     link.href = href;
     nav.appendChild(link);
   });
 
-  const auth = createEl('div', 'auth-slot');
-  auth.id = 'authSlot';
-  const signIn = createEl('button', 'btn btn-secondary btn-small', 'Sign in');
-  signIn.type = 'button';
-  signIn.addEventListener('click', () => window.PhotoToolsAuth?.openSignIn?.());
-  auth.appendChild(signIn);
-
   row.appendChild(nav);
-  row.appendChild(auth);
   header.insertBefore(row, header.firstChild);
 }
 
-function createAdBanner(label = 'Ad placeholder') {
-  const ad = createEl('div', 'ad-banner');
+function createAdBanner(label = 'Image Tools MCP') {
+  const ad = document.createElement('a');
+  const prefix = window.location.pathname.includes('/tools/') ? '../' : '';
+  const image = AD_IMAGES[adIndex % AD_IMAGES.length];
+  adIndex += 1;
+  ad.className = 'ad-banner';
+  ad.href = `${prefix}pricing.html`;
   ad.setAttribute('role', 'complementary');
-  ad.setAttribute('aria-label', label);
-  ad.textContent = `${label} (responsive)`;
+  ad.setAttribute('aria-label', `${label}: view pricing`);
+  const img = document.createElement('img');
+  img.src = `${prefix}${image}`;
+  img.alt = 'Image Tools MCP - AI image tools for agents and workflows';
+  img.loading = 'lazy';
+  ad.appendChild(img);
   return ad;
 }
 
@@ -60,7 +70,7 @@ function setupToolPageChrome() {
   if (!main || main.dataset.toolChromeReady) return;
   main.dataset.toolChromeReady = 'true';
 
-  const topAd = createAdBanner('Ad placeholder');
+  const topAd = createAdBanner();
   main.insertBefore(topAd, main.firstChild);
 
   const drop = document.getElementById('dropzoneArea');
@@ -84,7 +94,7 @@ function setupToolPageChrome() {
     });
   }
 
-  main.appendChild(createAdBanner('Ad placeholder'));
+  main.appendChild(createAdBanner());
 }
 
 function renderDropzone(container, input, onFile) {
