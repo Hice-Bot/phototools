@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing - PhotoTools</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>PhotoTools</h1>
+      <div class="tagline">free web usage with ads &bull; paid API and MCP credits</div>
+    </header>
+
+    <main class="content-page">
+      <a class="ad-banner" href="pricing.html" aria-label="Image Tools MCP pricing">
+        <img src="assets/ads/image-tools-mcp-try-now.png" alt="Image Tools MCP - try it now">
+      </a>
+
+      <section class="content-section">
+        <h2>Pricing</h2>
+        <p>Web tools are ad-supported. API and MCP usage is priced with credits so heavier image operations can be weighted fairly.</p>
+        <p class="billing-note">Purchases are set up for Clerk billing in the production flow. (Billing is currently running in dummy mode while the site is for sale.)</p>
+        <div id="clerkPricingMount"></div>
+        <div class="pricing-grid">
+          <article class="pricing-card">
+            <h3>Free Web</h3>
+            <div class="price">$0</div>
+            <p>Ad-supported browser usage.</p>
+            <ul>
+              <li>Web tools</li>
+              <li>No API key</li>
+              <li>Limited hosted processing</li>
+            </ul>
+            <a class="btn purchase-btn btn-secondary" href="index.html">Use free tools</a>
+          </article>
+          <article class="pricing-card">
+            <h3>Starter API/MCP</h3>
+            <div class="price">$12/mo</div>
+            <p>200 credits for light automation.</p>
+            <ul>
+              <li>1 API key</li>
+              <li>MCP access</li>
+              <li>Basic batch workflows</li>
+            </ul>
+            <button class="btn purchase-btn" type="button" data-plan="Starter API/MCP" data-price="$12/mo">Purchase credits</button>
+          </article>
+          <article class="pricing-card">
+            <h3>Pro API/MCP</h3>
+            <div class="price">$29/mo</div>
+            <p>500 credits for regular workflows.</p>
+            <ul>
+              <li>3 API keys</li>
+              <li>Higher rate limits</li>
+              <li>Batch-friendly usage</li>
+            </ul>
+            <button class="btn purchase-btn" type="button" data-plan="Pro API/MCP" data-price="$29/mo">Purchase credits</button>
+          </article>
+          <article class="pricing-card">
+            <h3>Studio</h3>
+            <div class="price">$79/mo</div>
+            <p>1,500 credits for teams and production queues.</p>
+            <ul>
+              <li>Team keys</li>
+              <li>Priority queue</li>
+              <li>$0.06 per extra credit</li>
+            </ul>
+            <button class="btn purchase-btn" type="button" data-plan="Studio" data-price="$79/mo">Purchase credits</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-section">
+        <h2>Credit Guide</h2>
+        <p>Background removal, transparent cutouts, restore, and basic upscale are 1 credit. Preset background replacement and product-photo output are 2 credits. Future premium model-backed edits should cost 3 to 15 credits depending on compute.</p>
+      </section>
+
+      <section class="content-section docs-link-section">
+        <h2>MCP/API Docs</h2>
+        <p>Connect AI agents, scripts, and batch workflows to the same image tools through paid API and MCP access.</p>
+        <a class="btn btn-secondary" href="mcp.html">Read full MCP/API docs</a>
+      </section>
+
+      <a class="ad-banner" href="pricing.html" aria-label="Image Tools MCP pricing">
+        <img src="assets/ads/image-tools-mcp-use-now.png" alt="One MCP. Every image fix. Use it now">
+      </a>
+    </main>
+  </div>
+  <script src="js/app.js"></script>
+  <script src="js/clerk.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const mount = document.getElementById('clerkPricingMount');
+      if (mount && await window.PhotoToolsAuth?.mountPricingTable?.(mount)) {
+        mount.style.margin = '18px 0';
+      }
+      document.querySelectorAll('[data-plan]').forEach(button => {
+        button.addEventListener('click', () => {
+          window.PhotoToolsAuth?.startCheckout?.(button.dataset.plan, button.dataset.price);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

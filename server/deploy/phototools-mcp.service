@@ -1,0 +1,15 @@
+[Unit]
+Description=PhotoTools MCP Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/mcuser/phototools/server
+Environment=PHOTO_TOOLS_MCP_TRANSPORT=stdio
+ExecStart=/usr/bin/python3.12 /home/mcuser/phototools/server/mcp_server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

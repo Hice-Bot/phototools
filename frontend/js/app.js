@@ -1,66 +1,223 @@
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:8093'
-  : `http://${window.location.hostname}:8093`;
+const API_BASE = window.PHOTOTOOLS_API_BASE
+  || (window.location.port === '8091'
+    ? `${window.location.protocol}//${window.location.hostname}:8093`
+    : `${window.location.origin}`);
+
+const CLERK_PUBLISHABLE_KEY = window.CLERK_PUBLISHABLE_KEY || 'pk_test_dummy_phototools';
+const AD_IMAGES = [
+  'assets/ads/image-tools-mcp-try-now.png',
+  'assets/ads/image-tools-mcp-use-now.png',
+];
+let adIndex = 0;
+
+function createEl(tag, className, text) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (text !== undefined) el.textContent = text;
+  return el;
+}
+
+function enhanceHeader() {
+  const header = document.querySelector('header');
+  if (!header || header.dataset.enhanced) return;
+  header.dataset.enhanced = 'true';
+  header.classList.add('site-header');
+
+  const title = header.querySelector('h1');
+  const brand = createEl('div', 'brand-lockup');
+  const mark = createEl('span', 'brand-mark');
+  mark.setAttribute('aria-hidden', 'true');
+  mark.innerHTML = '<span></span><span></span><span></span>';
+  if (title) brand.appendChild(mark);
+  if (title) brand.appendChild(title);
+  const row = createEl('div', 'header-row');
+  if (title) row.appendChild(brand);
+
+  const nav = createEl('nav', 'site-nav');
+  const prefix = window.location.pathname.includes('/tools/') ? '../' : '';
+  [
+    ['MCP', `${prefix}mcp.html`],
+  ].forEach(([label, href]) => {
+    const link = createEl('a', '', label);
+    link.href = href;
+    nav.appendChild(link);
+  });
+
+  row.appendChild(nav);
+  header.insertBefore(row, header.firstChild);
+}
+
+function createAdBanner(label = 'Image Tools MCP') {
+  const ad = document.createElement('a');
+  const prefix = window.location.pathname.includes('/tools/') ? '../' : '';
+  const image = AD_IMAGES[adIndex % AD_IMAGES.length];
+  adIndex += 1;
+  ad.className = 'ad-banner';
+  ad.href = `${prefix}pricing.html`;
+  ad.setAttribute('role', 'complementary');
+  ad.setAttribute('aria-label', `${label}: view pricing`);
+  const img = document.createElement('img');
+  img.src = `${prefix}${image}`;
+  img.alt = 'Image Tools MCP - AI image tools for agents and workflows';
+  img.loading = 'lazy';
+  ad.appendChild(img);
+  return ad;
+}
+
+function setupToolPageChrome() {
+  enhanceHeader();
+  const main = document.querySelector('main.tool-page');
+  if (!main || main.dataset.toolChromeReady) return;
+  main.dataset.toolChromeReady = 'true';
+
+  const topAd = createAdBanner();
+  main.insertBefore(topAd, main.firstChild);
+
+  const drop = document.getElementById('dropzoneArea');
+  const result = document.getElementById('previewArea');
+  if (drop && result && !main.querySelector('.tool-workspace')) {
+    const workspace = createEl('div', 'tool-workspace');
+    const left = createEl('section', 'tool-column tool-column-original');
+    const right = createEl('section', 'tool-column tool-column-result');
+
+    main.insertBefore(workspace, drop);
+    workspace.appendChild(left);
+    workspace.appendChild(right);
+
+    ['dropzoneArea', 'controls', 'toolbar', 'progress', 'infoBar'].forEach(id => {
+      const node = document.getElementById(id);
+      if (node) left.appendChild(node);
+    });
+    ['previewArea', 'metaInfo', 'downloadArea'].forEach(id => {
+      const node = document.getElementById(id);
+      if (node) right.appendChild(node);
+    });
+  }
+
+  main.appendChild(createAdBanner());
+}
+
+function renderDropzone(container, input, onFile) {
+  container.innerHTML = '';
+  const dz = createEl('div', 'dropzone');
+  const icon = createEl('div', 'big-icon', 'Upload');
+  const text = createEl('div', '', 'Drop image here or click to browse');
+  dz.appendChild(icon);
+  dz.appendChild(text);
+  dz.addEventListener('click', () => {
+    input.value = '';
+    input.click();
+  });
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('active'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('active'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('active');
+    if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]);
+  });
+  container.appendChild(dz);
+  container.appendChild(input);
+}
+
+function showOriginalPreview(container, file, img, input) {
+  container.innerHTML = '';
+  container.classList.add('original-loaded');
+  const panel = createEl('div', 'image-panel original-panel');
+  const head = createEl('div', 'panel-head');
+  head.appendChild(createEl('span', 'panel-title', 'Original'));
+  const meta = createEl('span', 'panel-meta', `${img.naturalWidth} x ${img.naturalHeight} | ${formatBytes(file.size)}`);
+  head.appendChild(meta);
+  const image = document.createElement('img');
+  image.src = img.src;
+  image.alt = file.name || 'Original image';
+  const change = createEl('button', 'btn btn-secondary btn-small', 'Choose another');
+  change.type = 'button';
+  change.addEventListener('click', () => {
+    input.value = '';
+    input.click();
+  });
+  panel.appendChild(head);
+  panel.appendChild(image);
+  panel.appendChild(change);
+  container.appendChild(panel);
+  container.appendChild(input);
+}
 
 function createDropzone(container, onFile) {
-  const dz = document.createElement('div');
-  dz.className = 'dropzone';
-  dz.innerHTML = '<div class="big-icon">\uD83D\uDCC1</div>Drop image here or click to browse';
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
   input.style.display = 'none';
-  input.addEventListener('change', () => { if (input.files[0]) onFile(input.files[0]); });
-  dz.addEventListener('click', () => input.click());
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('active'); });
-  dz.addEventListener('dragleave', () => dz.classList.remove('active'));
-  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('active'); if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); });
-  container.appendChild(dz);
-  container.appendChild(input);
-  return { element: dz, input };
+
+  async function handleFile(file) {
+    const img = await loadImage(file);
+    showOriginalPreview(container, file, img, input);
+    clearResult();
+    await onFile(file);
+  }
+
+  input.addEventListener('change', () => {
+    if (input.files[0]) handleFile(input.files[0]);
+  });
+  renderDropzone(container, input, handleFile);
+  return { element: container, input };
 }
 
-function loadImage(file) {
+function loadImage(fileOrUrl) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = reject;
-    img.src = URL.createObjectURL(file);
+    img.src = typeof fileOrUrl === 'string' ? fileOrUrl : URL.createObjectURL(fileOrUrl);
   });
 }
 
-function fileToCanvas(file) {
-  return new Promise(async (resolve) => {
-    const img = await loadImage(file);
-    const canvas = document.createElement('canvas');
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    resolve(canvas);
-  });
+async function fileToCanvas(file) {
+  const img = await loadImage(file);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  return canvas;
 }
 
 function canvasToFile(canvas, type = 'image/png', quality = 0.92) {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     canvas.toBlob(blob => {
-      resolve(new File([blob], 'output.' + type.split('/')[1], { type }));
+      if (!blob) {
+        reject(new Error('Could not render image'));
+        return;
+      }
+      resolve(new File([blob], `output.${type.split('/')[1]}`, { type }));
     }, type, quality);
   });
 }
 
-function showPreview(container, src) {
+function clearResult() {
+  const preview = document.getElementById('previewArea');
+  const downloads = document.getElementById('downloadArea');
+  if (preview) preview.innerHTML = '';
+  if (downloads) downloads.innerHTML = '';
+}
+
+function showPreview(container, src, label = 'Result') {
   container.innerHTML = '';
-  const img = document.createElement('img');
-  img.src = src;
-  container.appendChild(img);
-  return img;
+  const panel = createEl('div', 'image-panel result-panel');
+  const head = createEl('div', 'panel-head');
+  head.appendChild(createEl('span', 'panel-title', label));
+  const image = document.createElement('img');
+  image.src = src;
+  image.alt = label;
+  panel.appendChild(head);
+  panel.appendChild(image);
+  container.appendChild(panel);
+  return image;
 }
 
 function addDownloadButton(container, file, filename = 'output.png') {
-  const btn = document.createElement('button');
-  btn.className = 'btn';
-  btn.textContent = 'Download';
+  const btn = createEl('button', 'btn download-btn', 'Download');
+  btn.type = 'button';
   btn.addEventListener('click', () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(file);
@@ -77,11 +234,30 @@ function formatBytes(bytes) {
   return (bytes / 1048576).toFixed(1) + ' MB';
 }
 
-async function apiPost(endpoint, file, extraFields = {}) {
+async function authHeaders() {
+  const headers = {};
+  const token = await window.PhotoToolsAuth?.getToken?.();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
+async function apiPost(endpoint, file, extraFields = {}, options = {}) {
   const form = new FormData();
   form.append('image', file);
   Object.entries(extraFields).forEach(([k, v]) => form.append(k, v));
-  const res = await fetch(`${API_BASE}${endpoint}`, { method: 'POST', body: form });
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.blob();
+  const headers = options.paid ? await authHeaders() : {};
+  const res = await fetch(`${API_BASE}${endpoint}`, { method: 'POST', body: form, headers });
+  if (!res.ok) {
+    let detail = `API error: ${res.status}`;
+    try {
+      const json = await res.json();
+      if (json.detail) detail = json.detail;
+    } catch (_) {}
+    throw new Error(detail);
+  }
+  const blob = await res.blob();
+  blob.photoToolsMode = res.headers.get('X-PhotoTools-Mode') || '';
+  return blob;
 }
+
+document.addEventListener('DOMContentLoaded', setupToolPageChrome);
