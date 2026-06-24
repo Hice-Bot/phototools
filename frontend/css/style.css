@@ -410,6 +410,15 @@ header .tagline {
 
 @media (max-width: 620px) {
   .container { padding: 0 14px 36px; }
+  header h1 {
+    font-size: 18px;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .header-row { gap: 14px; }
+  .auth-slot { margin-left: 0; text-align: left; }
+  .site-nav { gap: 16px; flex-wrap: wrap; }
   .tool-grid { grid-template-columns: 1fr; }
   .tool-column { padding: 14px; }
   .controls, #toolbar { flex-direction: column; align-items: stretch; }

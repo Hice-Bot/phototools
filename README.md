@@ -92,6 +92,7 @@ For local stdio use:
 
 ```powershell
 cd server
+python3.12 -m pip install -r requirements-mcp.txt
 python mcp_server.py
 ```
 
